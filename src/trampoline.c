@@ -75,6 +75,34 @@ static BOOL IsCodePadding(LPBYTE pInst, UINT size)
 //-------------------------------------------------------------------------
 BOOL CreateTrampolineFunction(PTRAMPOLINE ct)
 {
+
+    //
+    //https://blog.csdn.net/lygl35/article/details/114059915  
+    //https://www.jianshu.com/p/55726f7e355a
+    //https://www.cnblogs.com/banchen/p/6709967.html
+    //http://www.phpweblog.net/GaRY/archive/2007/07/11/1496.html
+    // 
+    //x86下跳转
+    //call(E8):
+    //第一步将call指令下一条要执行的指令存放到eip（指令指针寄存器）中，
+    //第二步jmp(E9)跳转。
+    //跳转地址的计算公式：当前地址 + 四个字节的偏移量（e8后面的四个字节） + 5（指令位数）
+    //通过公式计算出的地址实际上是执行第二步的地址
+    // 
+    //FF15 FF25:
+    //其后是一个绝对地址，将该绝对地址解星号，即得下一条要执行的指令的地址，也就是进入函数的第一条指令
+    //
+    //
+    //x64下跳转
+    //E8:
+    //同x86下，计算方式也是一样的
+    //
+    //FF15 FF25:
+    //其后是一个偏移地址，计算后解星号，即得下一条要执行的指令的地址，也就是进入函数的第一条指令
+    //计算公式：当前地址 + 四个字节的偏移量（FF15后面的四个字节） + 6（指令位数）
+    //
+
+
 #if defined(_M_X64) || defined(__x86_64__)
     CALL_ABS call = {
         0xFF, 0x15, 0x00000002, // FF15 00000002: CALL [RIP+8]
@@ -91,6 +119,7 @@ BOOL CreateTrampolineFunction(PTRAMPOLINE ct)
         0x0000000000000000ULL   // Absolute destination address
     };
 #else
+
     CALL_REL call = {
         0xE8,                   // E8 xxxxxxxx: CALL +5+xxxxxxxx
         0x00000000              // Relative destination address
@@ -109,6 +138,7 @@ BOOL CreateTrampolineFunction(PTRAMPOLINE ct)
     UINT8     newPos   = 0;
     ULONG_PTR jmpDest  = 0;     // Destination address of an internal jump.
     BOOL      finished = FALSE; // Is the function completed?
+
 #if defined(_M_X64) || defined(__x86_64__)
     UINT8     instBuf[16];
 #endif
