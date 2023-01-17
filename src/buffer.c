@@ -218,13 +218,21 @@ static PMEMORY_BLOCK GetMemoryBlock(LPVOID pOrigin)
         }
     }
 #else
-    // In x86 mode, a memory block can be placed anywhere.
+    //
+    //In x86 mode, a memory block can be placed anywhere.
+    //this is different from x86, but why?
+    //
+    //pBlock = 0x01100000 {pNext=0x00000000 <NULL> pFree=0x01100080 {pNext=0x01100060 {pNext=0x01100040 {pNext=0x01100020 {...} ...} ...} ...} ...}
+    //
     pBlock = (PMEMORY_BLOCK)VirtualAlloc(
         NULL, MEMORY_BLOCK_SIZE, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
 #endif
 
     if (pBlock != NULL)
     {
+        //
+        //构建一个内存槽单向链表，链表结构见图minhook.drawio
+        //
         // Build a linked list of all the slots.
         PMEMORY_SLOT pSlot = (PMEMORY_SLOT)pBlock + 1;
         pBlock->pFree = NULL;

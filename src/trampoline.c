@@ -101,6 +101,9 @@ BOOL CreateTrampolineFunction(PTRAMPOLINE ct)
     //其后是一个偏移地址，计算后解星号，即得下一条要执行的指令的地址，也就是进入函数的第一条指令
     //计算公式：当前地址 + 四个字节的偏移量（FF15后面的四个字节） + 6（指令位数）
     //
+    //
+    //FF15 FF25 一般是跨模块调用使用
+    //
 
 
 #if defined(_M_X64) || defined(__x86_64__)
